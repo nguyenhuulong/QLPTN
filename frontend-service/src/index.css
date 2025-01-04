@@ -1,0 +1,41 @@
+body {
+  margin: 0;
+}
+
+.logo {
+  color: white;
+  padding: 1rem;
+  font-size: 1.5rem;
+  font-family: fantasy;
+  text-align: center;
+  user-select: none;
+  cursor: pointer;
+}
+
+.logo:hover {
+    color: rgb(226, 226, 226)
+}
+
+.ant-layout-sider {
+  width: 240px !important;
+  min-width: fit-content !important;
+}
+
+.ant-layout-sider-children {
+  width: 240px !important;
+}
+
+.ant-menu-item {
+  padding: 1rem 1.5rem !important;
+}
+
+.ant-spin {
+  height: 100%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-container h2 {
+  margin-top: 0;
+}

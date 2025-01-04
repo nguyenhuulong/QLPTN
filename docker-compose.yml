@@ -1,0 +1,87 @@
+services:
+  # Frontend Service
+  frontend:
+    build: ./frontend-service
+    ports:
+      - "3000:80"
+    depends_on:
+      - wso2
+    environment:
+      - REACT_APP_API_GATEWAY=http://wso2:8280
+    networks:
+      - app-network
+
+  # Backend Service 1 - Giáo viên
+  teacher-service:
+    build: ./backend-teacher-service
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mongodb-teacher
+    environment:
+      - MONGODB_URI=mongodb://mongodb-teacher:27017/teacher_db
+    networks:
+      - app-network
+
+  mongodb-teacher:
+    image: mongo
+    container_name: mongodb-teacher
+    ports:
+      - "27018:27017"
+    volumes:
+      - teacher-db-data:/data/db
+    networks:
+      - app-network
+
+  # Backend Service 2 - Phòng thí nghiệm
+  lab-service:
+    build: ./backend-lab-service
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb-lab
+    environment:
+      - MONGODB_URI=mongodb://mongodb-lab:27017/lab_db
+    networks:
+      - app-network
+
+  mongodb-lab:
+    image: mongo
+    container_name: mongodb-lab
+    ports:
+      - "27019:27017"
+    volumes:
+      - lab-db-data:/data/db
+    networks:
+      - app-network
+
+  # WSO2 API Gateway
+  wso2:
+    image: wso2/wso2am:4.3.0
+    container_name: wso2
+    ports:
+      - "8243:8243"
+      - "8280:8280"
+      - "9443:9443"
+    networks:
+      - app-network
+
+  # Keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.7
+    container_name: keycloak
+    command: start-dev
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+
+volumes:
+  teacher-db-data:
+  lab-db-data:
+
+networks:
+  app-network:
