@@ -1,0 +1,49 @@
+type Teacher {
+  id: ID!
+  name: String!
+  departmentId: Department!
+}
+
+type Department {
+  id: ID!
+  name: String!
+  teachers: [Teacher!]
+  subjects: [Subject!]
+}
+
+type Subject {
+  id: ID!
+  name: String!
+  departmentId: Department!
+}
+
+type Query {
+  getTeachers: [Teacher!]
+  getTeacher(id: ID!): Teacher
+  getDepartments: [Department!]
+  getDepartment(id: ID!): Department
+  getSubjects: [Subject!]
+  getSubject(id: ID!): Subject
+}
+
+type Mutation {
+  addTeacher(name: String!, departmentId: ID!): Teacher
+  updateTeacher(
+    id: ID!
+    name: String
+    departmentId: ID
+  ): Teacher
+  deleteTeacher(id: ID!): Boolean
+
+  addDepartment(name: String!): Department
+  updateDepartment(id: ID!, name: String): Department
+  deleteDepartment(id: ID!): Boolean
+
+  addSubject(name: String!, departmentId: ID!): Subject
+  updateSubject(
+    id: ID!
+    name: String
+    departmentId: ID
+  ): Subject
+  deleteSubject(id: ID!): Boolean
+}

@@ -15,6 +15,7 @@ const LabManagement = () => {
             try {
                 const labData = await getLabs();
                 const scheduleData = await getLabSchedules();
+                console.log(labData)
                 setLabs(labData);
                 setSchedules(scheduleData);
             } catch (error) {
