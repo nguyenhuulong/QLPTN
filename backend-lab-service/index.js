@@ -153,6 +153,11 @@ app.delete("/labs/:labId/devices/:deviceId", async (req, res) => {
     }
 });
 
+app.get("/schedules", async (req, res) => {
+    const schedules = await Schedule.find();
+    res.json(schedules);
+});
+
 app.get("/labs/:id/schedule", async (req, res) => {
     const schedules = await Schedule.find({ labId: req.params.id });
     res.json(schedules);

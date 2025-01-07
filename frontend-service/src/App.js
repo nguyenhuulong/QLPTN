@@ -12,27 +12,27 @@ const App = () => {
   return (
     <Router>
       <Layout style={{ minHeight: "100vh" }}>
-        <Sider>
+        <Sider style={{ height: "100vh" }} theme="dark">
           <div className="logo">HVKTQS</div>
           <Menu theme="dark" mode="inline">
-            <Menu.Item key="1" icon={<UserOutlined />}>
-              <a href="/teachers">Quản lý giáo viên</a>
-            </Menu.Item>
-            <Menu.Item key="2" icon={<AppstoreOutlined />}>
+            <Menu.Item key="1" icon={<AppstoreOutlined />}>
               <a href="/labs">Quản lý phòng thí nghiệm</a>
+            </Menu.Item>
+            <Menu.Item key="2" icon={<UserOutlined />}>
+              <a href="/teachers">Quản lý giáo viên</a>
             </Menu.Item>
           </Menu>
         </Sider>
-        <Layout>
+        <Layout style={{ maxHeight: "100vh", overflowY: "scroll" }}>
           <Content style={{ margin: "1rem", padding: "1rem" }}>
             <Routes>
-              <Route path="/" element={<Navigate to="/teachers" replace />} />
-              <Route path="/teachers" element={<TeacherList />} />
+              <Route path="/" element={<Navigate to="/labs" replace />} />
               <Route path="/labs" element={<LabManagement />} />
-              <Route path="*" element={<Navigate to="/teachers" replace />} />
+              <Route path="/teachers" element={<TeacherList />} />
+              <Route path="*" element={<Navigate to="/labs" replace />} />
             </Routes>
+            <Footer style={{ textAlign: "center" }}>Hệ thống quản lý khai thác phòng thí nghiệm © 2025</Footer>
           </Content>
-          <Footer style={{ textAlign: "center" }}>Hệ thống quản lý khai thác phòng thí nghiệm © 2025</Footer>
         </Layout>
       </Layout>
     </Router>

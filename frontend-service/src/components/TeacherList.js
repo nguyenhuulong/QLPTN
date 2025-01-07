@@ -1,29 +1,72 @@
 import React, { useState, useEffect } from "react";
 import { Table, Spin, message } from "antd";
 
-import { getTeachers } from "../services/api";
+import { getDepartments, getSubjects, getTeachers } from "../services/api";
 
 const TeacherList = () => {
     const [teachers, setTeachers] = useState([]);
-    
+
+    const [subjects, setSubjects] = useState([]);
+
+    const [departments, setDepartments] = useState([]);
+
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchTeachers = async () => {
+        const fetchData = async () => {
             try {
-                const data = await getTeachers();
-                setTeachers(data);
+                const teacherData = await getTeachers();
+                const subjectData = await getSubjects();
+                const departmentData = await getDepartments();
+                const sortedDepartments = departmentData.sort((a, b) => a.name.localeCompare(b.name));
+
+                // Sắp xếp giáo viên theo department name
+                const sortedTeachers = teacherData.sort((a, b) => {
+                    const departmentA = a.departmentId?.name || '';
+                    const departmentB = b.departmentId?.name || '';
+                    return departmentA.localeCompare(departmentB);
+                });
+
+                // Sắp xếp môn học theo department name
+                const sortedSubjects = subjectData.sort((a, b) => {
+                    const departmentA = a.departmentId?.name || '';
+                    const departmentB = b.departmentId?.name || '';
+                    return departmentA.localeCompare(departmentB);
+                });
+
+                setDepartments(sortedDepartments);
+                setTeachers(sortedTeachers);
+                setSubjects(sortedSubjects);
             } catch (error) {
                 message.error("Lỗi khi tải danh sách giáo viên.");
             } finally {
                 setLoading(false);
             }
         };
-
-        fetchTeachers();
+        fetchData();
     }, []);
 
-    const columns = [
+    const columnsDepartment = [
+        {
+            title: "Tên khoa - bộ môn",
+            dataIndex: "name",
+            key: "name",
+        },
+        {
+            title: "Số giáo viên",
+            dataIndex: "teachers",
+            key: "teachers",
+            render: (teachers) => teachers && teachers.length,
+        },
+        {
+            title: "Số môn học phụ trách",
+            dataIndex: "subjects",
+            key: "subjects",
+            render: (subjects) => subjects && subjects.length,
+        }
+    ];
+
+    const columnsTeacher = [
         {
             title: "Tên giáo viên",
             dataIndex: "name",
@@ -31,23 +74,36 @@ const TeacherList = () => {
         },
         {
             title: "Khoa/Bộ môn",
-            dataIndex: "department",
-            key: "department",
+            dataIndex: "departmentId",
+            key: "departmentId",
+            render: (departmentId) => departmentId && departmentId.name,
+        }
+    ];
+
+    const columnsSubject = [
+        {
+            title: "Tên môn học",
+            dataIndex: "name",
+            key: "name",
         },
         {
-            title: "Môn học",
-            dataIndex: "subjects",
-            key: "subjects",
-            render: (subjects) => subjects.join(", "),
-        },
+            title: "Khoa/Bộ môn",
+            dataIndex: "departmentId",
+            key: "departmentId",
+            render: (departmentId) => departmentId && departmentId.name,
+        }
     ];
 
     if (loading) return <Spin size="large" style={{ display: "block", margin: "auto" }} />;
 
     return (
         <div className="page-container">
+            <h2>Danh sách khoa - bộ môn</h2>
+            <Table columns={columnsDepartment} dataSource={departments} rowKey="id" />
             <h2>Danh sách giáo viên</h2>
-            <Table columns={columns} dataSource={teachers} rowKey="id" />
+            <Table columns={columnsTeacher} dataSource={teachers} rowKey="id" />
+            <h2>Danh sách môn học</h2>
+            <Table columns={columnsSubject} dataSource={subjects} rowKey="id" />
         </div>
     );
 };
