@@ -7,14 +7,12 @@ export const getAccessToken = async () => {
         'client_id': 'dCcqpjIqlI0qfDDU6HKMNh1e_L0a',
         'client_secret': 'RieEEAQst3eXomgEmQndFsVnTrUa'
     });
-
     let config = {
         method: 'post',
         maxBodyLength: Infinity,
         url: 'https://172.28.80.1:9443/oauth2/token',
         data: data
     };
-
     try {
         const response = await axios.request(config);
         const accessToken = response.data.access_token;
@@ -32,25 +30,21 @@ export const getAccessToken = async () => {
 export const getStoredAccessToken = () => {
     const token = localStorage.getItem('access_token');
     const expirationDate = localStorage.getItem('token_expiration');
-
     if (token && expirationDate) {
         const currentTime = new Date().getTime();
-        // Kiểm tra xem token đã hết hạn chưa
         if (currentTime < parseInt(expirationDate)) {
-            return token; // Nếu token chưa hết hạn, trả về token đã lưu
+            return token;
         } else {
             localStorage.removeItem('access_token');
             localStorage.removeItem('token_expiration');
         }
     }
-    return null; // Nếu không có token hoặc token đã hết hạn
+    return null;
 };
 
 export const getToken = async () => {
     let token = getStoredAccessToken();
-
     if (!token) {
-        // Nếu không có token hoặc token đã hết hạn, lấy token mới
         token = await getAccessToken();
     }
 

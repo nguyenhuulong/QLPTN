@@ -6,7 +6,6 @@ import { PlusOutlined } from '@ant-design/icons';
 import { getTeachers, getLabs, getLabSchedules, getDevicesByLab, updateLab, updateDevice, deleteDevice, createDevice, createLab, deleteLab, createSchedule, deleteSchedule, getSubjects } from "../services/api";
 
 const LabManagement = () => {
-
     const [labs, setLabs] = useState([]);
 
     const [subjects, setSubjects] = useState([]);
@@ -65,15 +64,18 @@ const LabManagement = () => {
     useEffect(() => {
         const fetchLabsAndSchedules = async () => {
             try {
-                const subjectData = await getSubjects();
                 const teacherData = await getTeachers();
-                const labData = await getLabs();
-                const scheduleData = await getLabSchedules();
-                const sortedLabs = labData.sort((a, b) => a.name.localeCompare(b.name));
-                setSubjects(subjectData)
                 setTeachers(teacherData);
+
+                const labData = await getLabs();
+                const sortedLabs = labData.sort((a, b) => a.name.localeCompare(b.name));
                 setLabs(sortedLabs);
+
+                const scheduleData = await getLabSchedules();
                 setSchedules(scheduleData);
+
+                const subjectData = await getSubjects();
+                setSubjects(subjectData);
             } catch (error) {
                 message.error("Lỗi khi tải thông tin phòng thí nghiệm.");
             } finally {
