@@ -4,8 +4,13 @@ import { Table, Spin, message, Button, Modal, Form, Input, Popconfirm, Space, Se
 import { PlusOutlined } from '@ant-design/icons';
 
 import { getTeachers, getLabs, getLabSchedules, getDevicesByLab, updateLab, updateDevice, deleteDevice, createDevice, createLab, deleteLab, createSchedule, deleteSchedule, getSubjects } from "../services/api";
+import { getClientRoles, getUserName, loadUserProfile } from "../keycloak";
 
 const LabManagement = () => {
+    const [user, setUser] = useState(null);
+
+    const [role, setRole] = useState(null);
+
     const [labs, setLabs] = useState([]);
 
     const [subjects, setSubjects] = useState([]);
@@ -62,6 +67,13 @@ const LabManagement = () => {
     const [form4] = Form.useForm();
 
     useEffect(() => {
+        const userAccount = getUserName();
+        setUser(userAccount);
+        const userRole = getClientRoles();
+        setRole(userRole[0])
+    }, [])
+
+    useEffect(() => {
         const fetchLabsAndSchedules = async () => {
             try {
                 const teacherData = await getTeachers();
@@ -98,7 +110,11 @@ const LabManagement = () => {
     };
 
     const handleDeleteLab = async (labId) => {
-        deleteLab(labId)
+        const response = await deleteLab(role, labId)
+        if (response.error) {
+            message.error(response.error);
+            return;
+        }
         message.success("Xóa phòng lab thành công!");
         setReload(!reload)
     };
@@ -108,9 +124,13 @@ const LabManagement = () => {
             .validateFields()
             .then(async (values) => {
                 console.log(values)
-                const updatedLab = await updateLab(selectedLab._id, form.getFieldsValue());
+                const updatedLab = await updateLab(role, selectedLab._id, form.getFieldsValue());
+                if (updatedLab.error) {
+                    message.error(updatedLab.error); // Hiển thị thông báo lỗi
+                    return;
+                }
                 const updatePromises = devices.map((device) =>
-                    updateDevice(selectedLab._id, device._id, device)
+                    updateDevice(role, selectedLab._id, device._id, device)
                 );
                 message.success("Cập nhật thành công!");
                 setDevices([]);
@@ -170,7 +190,11 @@ const LabManagement = () => {
     ];
 
     const handleAddDevice = async () => {
-        const data = createDevice(selectedLab._id, newDevice)
+        const data = await createDevice(role, selectedLab._id, newDevice)
+        if (data.error) {
+            message.error(data.error); // Hiển thị thông báo lỗi
+            return;
+        }
         message.success("Thêm thiết bị thành công!");
         setIsAddModalVisible(false);
         setDevices([]);
@@ -183,8 +207,12 @@ const LabManagement = () => {
             content: "Bạn có chắc chắn muốn xóa thiết bị này không?",
             okText: "Xóa",
             cancelText: "Hủy",
-            onOk: () => {
-                deleteDevice(selectedLab._id, deviceId)
+            onOk: async () => {
+                const response = await deleteDevice(role, selectedLab._id, deviceId)
+                if (response.error) {
+                    message.error(response.error);
+                    return;
+                }
                 message.success("Xóa thiết bị thành công!");
                 setDevices([]);
                 setIsModalVisible(false);
@@ -263,14 +291,20 @@ const LabManagement = () => {
     const handleAddLab = async () => {
         try {
             const values = await form3.validateFields(); // Kiểm tra các trường form
-            const response = createLab(values);
-            console.log(response)
+            const response = await createLab(role, values); // Gọi API
+            if (response.error) {
+                message.error(response.error); // Hiển thị thông báo lỗi
+                return;
+            }
+            // Thành công
             message.success("Thêm phòng thí nghiệm thành công!");
-            setReload(!reload)
+            setReload(!reload);
             setIsAddLabModalVisible(false);
             form3.resetFields();
         } catch (error) {
-            message.error("Vui lòng kiểm tra thông tin nhập vào!"); // Hiển thị lỗi nếu validate thất bại
+            // Xử lý lỗi bất ngờ
+            message.error("Vui lòng kiểm tra thông tin nhập vào!");
+            console.error("Lỗi không mong đợi:", error);
         }
     };
 
@@ -292,6 +326,8 @@ const LabManagement = () => {
                             : schedule.purpose === "teaching"
                                 ? `Dạy học: ${subject.name}`
                                 : "Khác",
+                    labId: schedule.labId,
+                    reservedBy: schedule.reservedBy,
                 };
             })
             .sort((a, b) => {
@@ -337,14 +373,14 @@ const LabManagement = () => {
             render: (_, record) => (
                 <Popconfirm
                     title="Bạn có chắc chắn muốn xóa lịch này?"
-                    onConfirm={() => handleDeleteSchedule(record.id, record.labId)}
+                    onConfirm={() => handleDeleteSchedule(record, record.labId, record.reservedBy)} // Truyền thêm labId và reservedBy vào đây
                     okText="Có"
                     cancelText="Không"
                 >
                     <Button danger>Xóa</Button>
                 </Popconfirm>
             ),
-        },
+        }
     ];
 
     const handleAddSchedule = async () => {
@@ -372,10 +408,13 @@ const LabManagement = () => {
             message.error("Lỗi khi thêm lịch!");
         }
     };
-
-    const handleDeleteSchedule = async (scheduleId, labId) => {
+    const handleDeleteSchedule = async (schedule, labId, reservedBy) => {
         try {
-            await deleteSchedule(labId, scheduleId);
+            const response = await deleteSchedule(role, user, reservedBy, labId, schedule.id);
+            if (response.error) {
+                message.error(response.error); // Hiển thị thông báo lỗi
+                return;
+            }
             message.success("Xóa lịch thành công!");
             setReload(!reload);
         } catch (error) {
@@ -406,7 +445,15 @@ const LabManagement = () => {
                 <h2>Lịch khai thác</h2>
                 <Button
                     type="primary"
-                    onClick={() => setIsAddScheduleModalVisible(true)}
+                    onClick={() => {
+                        const reservedBy = role === "admin"
+                            ? "" // admin thì không cần điền sẵn giáo viên
+                            : teachers.find((teacher) => teacher.account === user)?.id; // user thì chọn giáo viên theo account
+
+                        // Cập nhật giá trị của reservedBy vào initialValues
+                        setNewSchedule((prev) => ({ ...prev, reservedBy }));
+                        setIsAddScheduleModalVisible(true)
+                    }}
                     style={{ marginBottom: "16px" }}
                     icon={<PlusOutlined />}
                 >
@@ -693,10 +740,15 @@ const LabManagement = () => {
                         rules={[{ required: true, message: "Vui lòng chọn giáo viên" }]} // Validation
                     >
                         <Select
-                            value={newSchedule.reservedBy}
+                            value={
+                                role === 'admin'
+                                    ? newSchedule.reservedBy
+                                    : teachers.find((teacher) => teacher.account === user).id // Nếu là user, chọn giáo viên có account trùng với user.account
+                            }
                             onChange={(value) =>
                                 setNewSchedule((prev) => ({ ...prev, reservedBy: value }))
                             }
+                            disabled={role !== 'admin'}
                         >
                             {teachers.map((teacher, index) => (
                                 <Select.Option key={index} value={teacher.id}>

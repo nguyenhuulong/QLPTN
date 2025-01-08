@@ -73,6 +73,11 @@ const TeacherList = () => {
             key: "name",
         },
         {
+            title: "Tài khoản",
+            dataIndex: "account",
+            key: "account",
+        },
+        {
             title: "Khoa/Bộ môn",
             dataIndex: "departmentId",
             key: "departmentId",

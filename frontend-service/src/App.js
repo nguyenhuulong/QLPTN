@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { Layout, Menu } from "antd";
+import { Layout, Menu, Button } from "antd";
 import { UserOutlined, AppstoreOutlined } from "@ant-design/icons";
+
+import keycloak, { getClientRoles, keycloakAuthenticated, keycloakLogout, loadUserProfile } from "./keycloak";
 
 import TeacherList from "./components/TeacherList";
 import LabManagement from "./components/LabManagement";
@@ -9,6 +11,31 @@ import LabManagement from "./components/LabManagement";
 const { Content, Footer, Sider } = Layout;
 
 const App = () => {
+  const [authenticated, setAuthenticated] = useState(false);
+
+  const [userProfile, setUserProfile] = useState(null);
+
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    if (keycloak.authenticated) {
+      setAuthenticated(true);
+      const roles = getClientRoles()
+      setUserRole(roles[0])
+      loadUserProfile().then(profile => {
+        setUserProfile(profile);
+      });
+    }
+  }, []);
+
+  const handleLogout = () => {
+    keycloakLogout();
+  };
+
+  if (!authenticated) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <Router>
       <Layout style={{ minHeight: "100vh" }}>
@@ -25,6 +52,16 @@ const App = () => {
         </Sider>
         <Layout style={{ maxHeight: "100vh", overflowY: "scroll" }}>
           <Content style={{ margin: "1rem", padding: "1rem" }}>
+            {userProfile && (
+              <div style={{
+                display: "flex",
+                justifyContent: "end",
+                alignItems: "center"
+              }}>
+                <p>Xin chào, {userProfile.firstName} {userProfile.lastName}</p>
+                <Button onClick={handleLogout} style={{ marginLeft: "8px" }}>Đăng xuất</Button>
+              </div>
+            )}
             <Routes>
               <Route path="/" element={<Navigate to="/labs" replace />} />
               <Route path="/labs" element={<LabManagement />} />

@@ -1,6 +1,7 @@
 type Teacher {
   id: ID!
   name: String!
+  account: String!
   departmentId: Department!
 }
 
@@ -31,6 +32,7 @@ type Mutation {
   updateTeacher(
     id: ID!
     name: String
+    account: String
     departmentId: ID
   ): Teacher
   deleteTeacher(id: ID!): Boolean

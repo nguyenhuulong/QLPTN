@@ -1,15 +1,17 @@
 services:
   # Frontend Service
-  # frontend:
-  #   build: ./frontend-service
-  #   ports:
-  #     - "3000:80"
-  #   depends_on:
-  #     - wso2
-  #   environment:
-  #     - REACT_APP_API_GATEWAY=http://wso2:8280
-  #   networks:
-  #     - app-network
+  frontend:
+    build: ./frontend-service
+    ports:
+      - "3000:80"
+    volumes:
+    - ./frontend-service:/app
+    depends_on:
+      - wso2
+    environment:
+      - REACT_APP_API_GATEWAY=https://172.23.128.1:8243
+    networks:
+      - app-network
 
   # Backend Service 1 - Giáo viên
   teacher-service:

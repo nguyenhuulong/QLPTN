@@ -47,7 +47,6 @@ const resolvers = {
       );
       return results;
     },
-
     getDepartment: async (_, { id }) => {
       const department = await Department.findById(id); // Lấy department theo id
       if (!department) {
@@ -78,7 +77,7 @@ const resolvers = {
       if (!department) {
         throw new Error("Department not found");
       }
-      const teacher = new Teacher({ name, departmentId });
+      const teacher = new Teacher({ name, account, departmentId });
       await teacher.save();
       const teacherWithDepartment = await Teacher.findById(teacher._id).populate('departmentId');
       return teacherWithDepartment;

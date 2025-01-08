@@ -18,10 +18,8 @@ RUN npm run build
 
 # Sử dụng hình ảnh Nginx để phục vụ ứng dụng React
 FROM nginx:1.21
-
-# Sao chép build output của React vào thư mục phục vụ của Nginx
 COPY --from=0 /app/build /usr/share/nginx/html
-
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Mở cổng 80
 EXPOSE 80
 
