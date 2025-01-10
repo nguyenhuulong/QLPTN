@@ -21,7 +21,7 @@ export const initKeycloak = (onAuthenticatedCallback) => {
 
 // Kiểm tra xem người dùng đã đăng nhập chưa
 export const keycloakAuthenticated = () => {
-    return keycloak.authenticated;
+    return keycloak.authenticated; 
 };
 
 // Lấy danh sách Client Role
